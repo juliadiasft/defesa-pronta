@@ -3,52 +3,52 @@
 
   var PERGUNTAS = [
     {
-      id: "chegada",
-      q: "A carta da multa chegou quanto tempo depois do dia da infração?",
-      ajuda: "Compare a data da infração com o dia em que a carta chegou (ou a data de postagem, se aparecer).",
+      id: "infracao",
+      q: "Sua multa foi de quê?",
+      ajuda: "Não sabe? Escolha \"Outra\".",
       op: [
-        ["mais30", "Mais de 30 dias depois"],
-        ["menos30", "Menos de 30 dias depois"],
-        ["naorecebi", "Não recebi carta, vi no app ou no Detran"],
+        ["radar", "Velocidade (radar)"],
+        ["sinal", "Sinal vermelho"],
+        ["estacionar", "Estacionamento"],
+        ["celular", "Celular ao volante"],
+        ["cinto", "Cinto ou capacete"],
+        ["leiseca", "Lei Seca"],
+        ["outra", "Outra"],
+      ],
+    },
+    {
+      id: "chegada",
+      q: "A carta chegou mais de 30 dias depois da multa?",
+      ajuda: "Compare a data da infração com a data em que a carta chegou.",
+      op: [
+        ["mais30", "Sim, mais de 30 dias"],
+        ["menos30", "Não, chegou antes"],
+        ["naorecebi", "Não recebi carta"],
+        ["naosei", "Não sei"],
+      ],
+    },
+    {
+      id: "outras",
+      q: "Você levou outra multa nos últimos 12 meses?",
+      ajuda: "",
+      op: [
+        ["nao", "Não, é a primeira"],
+        ["sim", "Sim"],
         ["naosei", "Não sei"],
       ],
     },
     {
       id: "cnh",
       q: "Sua CNH é provisória?",
-      ajuda: "A provisória (permissão para dirigir) vale no primeiro ano depois de tirar a carteira.",
-      op: [["sim", "Sim, é provisória"], ["nao", "Não, é definitiva"]],
-    },
-    {
-      id: "trabalho",
-      q: "Você trabalha dirigindo?",
-      ajuda: "Aplicativo, entrega, táxi, caminhão, van...",
-      op: [
-        ["carro", "Sim, de carro"],
-        ["moto", "Sim, de moto"],
-        ["nao", "Não"],
-      ],
-    },
-    {
-      id: "infracao",
-      q: "Qual foi a infração?",
-      ajuda: "Se não souber, escolha \"Outra\". A gente confere na foto.",
-      op: [
-        ["radar", "Velocidade (radar)"],
-        ["sinal", "Avanço de sinal vermelho"],
-        ["leiseca", "Lei Seca (bafômetro ou recusa)"],
-        ["celular", "Celular ao volante"],
-        ["estacionar", "Estacionamento"],
-        ["cinto", "Cinto ou capacete"],
-        ["outra", "Outra"],
-      ],
+      ajuda: "A provisória vale no 1º ano depois de tirar a carteira.",
+      op: [["sim", "Sim"], ["nao", "Não"]],
     },
     {
       id: "prazo",
-      q: "E o prazo para defesa que aparece na notificação?",
-      ajuda: "Procure por \"data limite\" ou \"prazo para apresentação de defesa\".",
+      q: "Quanto tempo falta para o prazo da defesa?",
+      ajuda: "A data limite está escrita na notificação.",
       op: [
-        ["folga", "Tenho mais de 7 dias"],
+        ["folga", "Mais de 7 dias"],
         ["curto", "Menos de 7 dias"],
         ["venceu", "Já venceu"],
         ["naosei", "Não sei"],
@@ -105,7 +105,7 @@
     barra.style.width = ((i + 1) / PERGUNTAS.length) * 100 + "%";
     contador.textContent = "Pergunta " + (i + 1) + " de " + PERGUNTAS.length;
     var h = '<div class="pergunta">' + esc(p.q) + "</div>";
-    h += '<p class="ajuda">' + esc(p.ajuda) + "</p>";
+    if (p.ajuda) h += '<p class="ajuda">' + esc(p.ajuda) + "</p>";
     p.op.forEach(function (o) {
       h += '<button class="opcao" data-v="' + o[0] + '">' + esc(o[1]) + "</button>";
     });
@@ -140,6 +140,7 @@
     if (resp.infracao === "leiseca") r.push({ forte: true, t: "Infração gravíssima com suspensão", d: "Na Lei Seca, a multa vem junto com processo de suspensão. Vale defender em todas as fases e conferir cada formalidade do auto." });
     if (resp.infracao === "estacionar") r.push({ forte: false, t: "Conferir a sinalização do local", d: "Sem sinalização suficiente e legível, a infração não deve ser aplicada (art. 90 do CTB)." });
     if (resp.infracao === "celular" || resp.infracao === "cinto") r.push({ forte: false, t: "Conferir a descrição do agente", d: "Em infrações flagradas por agente, a descrição precisa ser clara e coerente com o local, a hora e o veículo." });
+    if (resp.outras === "nao" && ["radar", "estacionar", "outra"].indexOf(resp.infracao) >= 0) r.push({ forte: false, t: "Pode virar só advertência", d: "Se a infração for leve ou média e você não levou a mesma multa em 12 meses, dá para pedir advertência por escrito no lugar da multa (art. 267 do CTB)." });
     return r;
   }
 
@@ -151,11 +152,8 @@
 
     var h = '<div class="resultado">';
     h += "<h2>Encontramos " + ps.length + " ponto" + (ps.length > 1 ? "s" : "") + " para conferir na sua multa</h2>";
-    if (resp.cnh === "sim" || resp.trabalho !== "nao") {
-      h += '<p class="ajuda">' + (resp.cnh === "sim"
-        ? "Com CNH provisória, uma infração grave ou gravíssima pode impedir a carteira definitiva. Vale defender."
-        : "Para quem trabalha dirigindo, cada ponto conta. Vale defender.") + "</p>";
-    }
+    if (resp.cnh === "sim") h += '<p class="ajuda">Com CNH provisória, uma infração grave ou gravíssima pode impedir a carteira definitiva. Vale defender.</p>';
+    else if (resp.outras === "sim") h += '<p class="ajuda">Somando multas, a CNH pode ser suspensa (de 20 a 40 pontos em 12 meses). Vale defender cada uma.</p>';
     if (resp.prazo === "curto") h += '<div class="urgente">⏰ Seu prazo está acabando. Mande a foto hoje para dar tempo.</div>';
     if (resp.prazo === "venceu") h += '<div class="urgente">O prazo da defesa prévia venceu, mas ainda dá para recorrer quando chegar a notificação da penalidade (a multa com valor). Mande a foto que a gente confere em qual fase você está.</div>';
 
@@ -191,10 +189,10 @@
 
   function resumo() {
     return [
-      "• Carta chegou: " + rotulo("chegada", resp.chegada),
-      "• CNH: " + rotulo("cnh", resp.cnh),
-      "• Trabalha dirigindo: " + rotulo("trabalho", resp.trabalho),
-      "• Infração: " + rotulo("infracao", resp.infracao),
+      "• Multa de: " + rotulo("infracao", resp.infracao),
+      "• Carta depois de 30 dias: " + rotulo("chegada", resp.chegada),
+      "• Outra multa em 12 meses: " + rotulo("outras", resp.outras),
+      "• CNH provisória: " + rotulo("cnh", resp.cnh),
       "• Prazo: " + rotulo("prazo", resp.prazo),
     ].join("\n");
   }
