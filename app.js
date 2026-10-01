@@ -17,13 +17,14 @@
       ],
     },
     {
-      id: "chegada",
-      q: "A carta chegou mais de 30 dias depois da multa?",
-      ajuda: "Compare a data da infração com a data em que a carta chegou.",
+      id: "pontos",
+      q: "Quantos pontos a multa dá?",
+      ajuda: "Está escrito na carta, perto do código da infração.",
       op: [
-        ["mais30", "Sim, mais de 30 dias"],
-        ["menos30", "Não, chegou antes"],
-        ["naorecebi", "Não recebi carta"],
+        ["leve", "3 pontos (leve)"],
+        ["media", "4 pontos (média)"],
+        ["grave", "5 pontos (grave)"],
+        ["gravissima", "7 pontos (gravíssima)"],
         ["naosei", "Não sei"],
       ],
     },
@@ -32,7 +33,7 @@
       q: "Você levou outra multa nos últimos 12 meses?",
       ajuda: "",
       op: [
-        ["nao", "Não, é a primeira"],
+        ["nao", "Não, é a única"],
         ["sim", "Sim"],
         ["naosei", "Não sei"],
       ],
@@ -128,19 +129,29 @@
     }
   });
 
+  // Gravidade típica quando a pessoa não sabe os pontos.
+  var GRAV_TIPICA = { estacionar: "leve ou média", radar: "média (até 20% acima)", cinto: "grave", celular: "gravíssima", sinal: "gravíssima", leiseca: "gravíssima" };
+  function advertencia() {
+    var leveMedia = resp.pontos === "leve" || resp.pontos === "media";
+    if (resp.outras === "sim") return "nao";
+    if (resp.outras === "naosei") return leveMedia || (resp.pontos === "naosei" && ["estacionar", "radar", "outra"].indexOf(resp.infracao) >= 0) ? "talvez" : "nao";
+    if (leveMedia) return "sim";
+    if (resp.pontos === "naosei") return ["estacionar", "radar", "outra"].indexOf(resp.infracao) >= 0 ? "talvez" : "nao";
+    return "nao";
+  }
+
   // Pré-análise automática, só com as respostas. Nunca promete cancelamento.
   function pontos() {
     var r = [];
-    if (resp.chegada === "mais30") r.push({ forte: true, t: "A carta pode ter saído fora do prazo", d: "O órgão tem 30 dias, contados da infração, para expedir a notificação. Se passou disso, o auto deve ser arquivado (art. 281 do CTB). Conferimos as datas na sua foto." });
-    if (resp.chegada === "naorecebi") r.push({ forte: true, t: "Possível falha na notificação", d: "Toda multa precisa de notificação de autuação antes da penalidade. Se ela não foi enviada ao seu endereço, isso pode ser contestado." });
-    if (resp.chegada === "naosei") r.push({ forte: false, t: "Conferir o prazo de 30 dias", d: "Na foto, comparamos a data da infração com a data de expedição da carta (art. 281 do CTB)." });
-    r.push({ forte: false, t: "Conferir os dados obrigatórios do auto", d: "Placa, marca, modelo, local, data, hora, artigo da infração e identificação do agente precisam estar certos (art. 280 do CTB). Qualquer divergência é ponto de defesa." });
-    if (resp.infracao === "radar") r.push({ forte: false, t: "Conferir o radar", d: "O equipamento precisa ser regulamentado e estar com a verificação do Inmetro em dia. A notificação deve trazer a velocidade medida e a considerada." });
-    if (resp.infracao === "sinal") r.push({ forte: false, t: "Conferir equipamento e sinalização", d: "Avanço de sinal costuma ser registrado por equipamento eletrônico, que também precisa estar regular." });
-    if (resp.infracao === "leiseca") r.push({ forte: true, t: "Infração gravíssima com suspensão", d: "Na Lei Seca, a multa vem junto com processo de suspensão. Vale defender em todas as fases e conferir cada formalidade do auto." });
+    var adv = advertencia();
+    if (adv === "sim") r.push({ forte: true, t: "Sua multa pode virar advertência", d: "Infração leve ou média e nenhuma outra multa em 12 meses: o art. 267 do CTB manda aplicar advertência por escrito no lugar da multa. A defesa pede isso com o artigo da lei." });
+    if (adv === "talvez") r.push({ forte: false, t: "Pode virar advertência", d: resp.outras === "naosei" ? "Se você não levou outra multa em 12 meses (confira na Carteira Digital de Trânsito), a lei manda trocar esta multa por advertência por escrito (art. 267)." : "Se a infração for leve ou média (veja os pontos na carta), a lei manda trocar a multa por advertência por escrito (art. 267). Este tipo de infração costuma ser " + (GRAV_TIPICA[resp.infracao] || "leve ou média") + "." });
+    if (resp.infracao === "radar") r.push({ forte: false, t: "Conferir o radar", d: "O equipamento precisa estar regulamentado e com a verificação do Inmetro em dia, e a carta deve trazer a velocidade medida e a considerada. Faltou? É ponto de defesa." });
+    if (resp.infracao === "leiseca") r.push({ forte: true, t: "Multa alta e suspensão da CNH", d: "Na Lei Seca, a multa vem com processo de suspensão. Vale defender em todas as fases e conferir cada formalidade do auto." });
     if (resp.infracao === "estacionar") r.push({ forte: false, t: "Conferir a sinalização do local", d: "Sem sinalização suficiente e legível, a infração não deve ser aplicada (art. 90 do CTB)." });
+    if (resp.infracao === "sinal") r.push({ forte: false, t: "Conferir o equipamento", d: "Avanço de sinal costuma ser registrado por equipamento eletrônico, que também precisa estar regular." });
     if (resp.infracao === "celular" || resp.infracao === "cinto") r.push({ forte: false, t: "Conferir a descrição do agente", d: "Em infrações flagradas por agente, a descrição precisa ser clara e coerente com o local, a hora e o veículo." });
-    if (resp.outras === "nao" && ["radar", "estacionar", "outra"].indexOf(resp.infracao) >= 0) r.push({ forte: false, t: "Pode virar só advertência", d: "Se a infração for leve ou média e você não levou a mesma multa em 12 meses, dá para pedir advertência por escrito no lugar da multa (art. 267 do CTB)." });
+    r.push({ forte: false, t: "Conferir os dados obrigatórios do auto", d: "Placa, veículo, local, data, hora, infração e identificação do agente precisam estar certos (art. 280 do CTB). Faltou ou errou? É ponto de defesa." });
     return r;
   }
 
@@ -151,7 +162,8 @@
     contador.textContent = "Pré-análise pronta · nº " + prot;
 
     var h = '<div class="resultado">';
-    h += "<h2>Encontramos " + ps.length + " ponto" + (ps.length > 1 ? "s" : "") + " para conferir na sua multa</h2>";
+    var adv = advertencia();
+    h += adv === "sim" ? "<h2>✅ Sua multa pode virar advertência</h2>" : adv === "talvez" ? "<h2>Sua multa pode virar advertência — falta confirmar 1 coisa</h2>" : "<h2>Encontramos " + ps.length + " ponto" + (ps.length > 1 ? "s" : "") + " para conferir na sua multa</h2>";
     if (resp.cnh === "sim") h += '<p class="ajuda">Com CNH provisória, uma infração grave ou gravíssima pode impedir a carteira definitiva. Vale defender.</p>';
     else if (resp.outras === "sim") h += '<p class="ajuda">Somando multas, a CNH pode ser suspensa (de 20 a 40 pontos em 12 meses). Vale defender cada uma.</p>';
     if (resp.prazo === "curto") h += '<div class="urgente">⏰ Seu prazo está acabando. Mande a foto hoje para dar tempo.</div>';
@@ -163,11 +175,14 @@
 
     h += '<div class="cartao" style="margin-top:16px">';
     h += "<b>Agora, a análise completa e grátis</b>";
-    h += '<p class="ajuda" style="margin:6px 0 14px">A sua notificação é conferida pela nossa equipe, ponto por ponto. A resposta chega no seu WhatsApp.</p>';
-    h += '<ol class="passos" style="margin-bottom:14px">';
-    h += "<li>Toque no botão verde (a mensagem já vai pronta)</li>";
-    h += "<li>No WhatsApp, toque no 📎 e mande a <b>foto da notificação</b> (frente e verso)</li>";
-    h += "</ol>";
+    if (C.api) h += '<p class="ajuda" style="margin:6px 0 14px">Mande a foto da carta: em 1 minuto o site lê tudo e mostra a análise completa, inclusive se não valer a pena defender.</p>';
+    else {
+      h += '<p class="ajuda" style="margin:6px 0 14px">A sua notificação é conferida pela nossa equipe, ponto por ponto. A resposta chega no seu WhatsApp.</p>';
+      h += '<ol class="passos" style="margin-bottom:14px">';
+      h += "<li>Toque no botão verde (a mensagem já vai pronta)</li>";
+      h += "<li>No WhatsApp, toque no 📎 e mande a <b>foto da notificação</b> (frente e verso)</li>";
+      h += "</ol>";
+    }
     h += C.api
       ? '<a class="btn btn-verde" href="analise.html">Mandar a foto e ver a análise agora →</a>'
       : '<a class="btn btn-verde" target="_blank" rel="noopener" href="' + esc(whats(mensagemAnalise(prot))) + '">Enviar minha notificação →</a>';
@@ -192,7 +207,7 @@
   function resumo() {
     return [
       "• Multa de: " + rotulo("infracao", resp.infracao),
-      "• Carta depois de 30 dias: " + rotulo("chegada", resp.chegada),
+      "• Pontos: " + rotulo("pontos", resp.pontos),
       "• Outra multa em 12 meses: " + rotulo("outras", resp.outras),
       "• CNH provisória: " + rotulo("cnh", resp.cnh),
       "• Prazo: " + rotulo("prazo", resp.prazo),

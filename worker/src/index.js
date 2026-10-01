@@ -39,6 +39,8 @@ Datas no formato AAAA-MM-DD. Hora HH:MM.
 - dataExpedicaoAutuacao: a data em que a NOTIFICAÇÃO DE AUTUAÇÃO foi expedida. Na carta de autuação, é a data de expedição/emissão/postagem dessa carta. Na carta de penalidade, preencha SOMENTE se estiver escrito explicitamente "Notificação de Autuação ... expedida em DATA"; a data de postagem da carta de penalidade NÃO é esta data.
 - prazo: a data limite para defesa prévia (na autuação) ou para recurso/interposição de recurso (na penalidade).
 - valor: valor integral da multa como está escrito (ex.: "130,16").
+- pontos: a pontuação da infração se estiver escrita (ex.: "04").
+- renavam: SOMENTE o número rotulado "RENAVAM". Não confunda com o código RENAINF/INFRAEST nem com o nº do auto.
 - semAbordagem: true se o texto disser que o condutor/veículo não foi abordado, ou citar o art. 280 § 3º (ou "280 3"). justificativaSemAbordagem: o motivo escrito para não abordar, se houver.
 - radar: true se a infração foi registrada por equipamento medidor de velocidade. velocidadePermitida, velocidadeMedida, velocidadeConsiderada: como escritas.
 - camposObrigatoriosAusentes: liste APENAS itens desta lista que estão em branco/ausentes no auto: "placa", "marca/modelo do veículo", "local da infração", "data da infração", "hora da infração", "código ou descrição da infração", "órgão autuador", "identificação do agente ou do equipamento". Nunca liste dados do condutor (nome, CNH, CPF), pois não são obrigatórios. Se estiver tudo presente, lista vazia.
@@ -49,7 +51,7 @@ const SCHEMA = {
   properties: Object.fromEntries(
     ["tipoCarta", "orgao", "uf", "auto", "placa", "marcaModelo", "renavam", "dataInfracao", "hora", "local", "municipio",
       "codigoInfracao", "descricaoInfracao", "artigoCTB", "valor", "dataExpedicaoAutuacao", "dataPostagem", "prazo",
-      "justificativaSemAbordagem", "velocidadePermitida", "velocidadeMedida", "velocidadeConsiderada", "observacoes"]
+      "justificativaSemAbordagem", "pontos", "velocidadePermitida", "velocidadeMedida", "velocidadeConsiderada", "observacoes"]
       .map((k) => [k, { type: "STRING" }])
       .concat([["semAbordagem", { type: "BOOLEAN" }], ["radar", { type: "BOOLEAN" }], ["legivel", { type: "BOOLEAN" }],
         ["camposObrigatoriosAusentes", { type: "ARRAY", items: { type: "STRING" } }]]),

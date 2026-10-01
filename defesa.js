@@ -20,6 +20,7 @@
     return "";
   }
   var PONTOS = { leve: 3, media: 4, grave: 5, gravissima: 7 };
+  function gravidadePorPontos(p) { var n = parseInt(String(p || "").replace(/D/g, ""), 10); return { 3: "leve", 4: "media", 5: "grave", 7: "gravissima" }[n] || ""; }
   var NOME_GRAV = { leve: "leve", media: "média", grave: "grave", gravissima: "gravíssima" };
 
   // Cada argumento: texto curto (análise) e parágrafo (defesa).
@@ -74,7 +75,7 @@
     var hoje = hojeIso || new Date().toISOString().slice(0, 10);
     var d = paraDados(fatos);
     var pontos = [], avisos = [], extras = [];
-    var grav = fatos.gravidade || gravidadePorValor(fatos.valor);
+    var grav = fatos.gravidade || gravidadePorValor(fatos.valor) || gravidadePorPontos(fatos.pontos);
 
     // Prazo.
     var prazoVencido = d.prazo && d.prazo < hoje;
