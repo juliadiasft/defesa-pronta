@@ -34,10 +34,23 @@
         r.datas.push({ data: data, tipo: tipo, linha: l });
       }
     });
+    // Descarta datas impossíveis (leitura ruim vira "2097").
+    var anoAtual = new Date().getFullYear();
+    r.datas = r.datas.filter(function (x) { var a = +x.data.slice(0, 4); return a >= anoAtual - 6 && a <= anoAtual + 1; });
+
     function primeira(tipo) { var d = r.datas.filter(function (x) { return x.tipo === tipo; })[0]; return d ? d.data : ""; }
     r.dataInfracao = primeira("infracao");
     r.dataExpedicao = primeira("expedicao");
     r.prazo = primeira("prazo");
+
+    // Sem rótulo legível: pela ordem, a mais antiga é a infração, a mais nova é o prazo, a do meio é a emissão.
+    r.palpites = [];
+    var usadas = [r.dataInfracao, r.dataExpedicao, r.prazo];
+    var soltas = r.datas.map(function (x) { return x.data; })
+      .filter(function (d, i, a) { return a.indexOf(d) === i && usadas.indexOf(d) < 0; }).sort();
+    if (!r.dataInfracao && soltas.length && (!r.dataExpedicao || soltas[0] < r.dataExpedicao)) { r.dataInfracao = soltas.shift(); r.palpites.push("data da infração"); }
+    if (!r.prazo && soltas.length) { r.prazo = soltas.pop(); r.palpites.push("prazo"); }
+    if (!r.dataExpedicao && soltas.length) { r.dataExpedicao = soltas[soltas.length - 1]; r.palpites.push("data de emissão"); }
 
     var tudo = linhas.join("\n");
     var maius = tudo.toUpperCase();
@@ -121,7 +134,7 @@
     return new Promise(function (ok, erro) {
       var img = new Image();
       img.onload = function () {
-        var max = 2000, k = Math.min(1, max / Math.max(img.width, img.height));
+        var max = 2800, k = Math.min(1, max / Math.max(img.width, img.height));
         var c = document.createElement("canvas");
         c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
         var g = c.getContext("2d");
@@ -167,7 +180,9 @@
       var d = dias(r.dataInfracao, r.dataExpedicao);
       if (d > 30) { setCampo("a_prazo30", true); achados.push("⚠️ Notificação expedida " + d + " dias depois da infração (art. 281): ponto forte de defesa."); }
       else achados.push("Prazo de 30 dias respeitado (" + d + " dias).");
-    } else achados.push("Não achei a data de expedição: confira na foto a data de postagem/emissão.");
+    } else if (!r.dataInfracao) achados.push("Não achei a data da infração: toque nela na lista de datas abaixo.");
+    else achados.push("Não achei a data de emissão/postagem: toque nela na lista de datas abaixo.");
+    if (r.palpites.length) achados.push("Pela ordem das datas, deduzi: " + r.palpites.join(", ") + ". Confira — se estiver trocado, toque no botão certo abaixo.");
     if (r.radar) { setCampo("a_radar", true); achados.push("Infração de radar: marquei o pedido de prova da aferição do Inmetro."); }
     if (r.faltando.length) {
       achados.push("Não encontrei: " + r.faltando.join(", ") + ". Confira na foto. Se faltar de verdade na notificação, marque “Falta ou erro em dado obrigatório” (art. 280).");
