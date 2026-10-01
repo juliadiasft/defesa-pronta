@@ -10,12 +10,39 @@
     return a + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
   }
 
+  // Placa lida com erro ("GAO8SB37", "GA08B37"): pega o 1º código da linha abaixo de "Placa",
+  // troca as confusões comuns e, se sobrar 1 caractere, testa tirar cada um.
+  function placaTolerante(linhas) {
+    var i = linhas.findIndex(function (l) { return /\bplaca\b/i.test(l); });
+    if (i < 0) return "";
+    var cand = (linhas[i].replace(/.*\bplaca\b\s*:?\s*/i, "") + " " + (linhas[i + 1] || "")).toUpperCase()
+      .split(/\s+/).filter(function (t) { return /^[A-Z0-9\-]{7,9}$/.test(t); });
+    var ok = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/;
+    function corrige(t) {
+      var L = { "0": "O", "1": "I", "8": "B", "5": "S", "2": "Z" }, D = { O: "0", I: "1", L: "1", B: "8", S: "5", Z: "2", G: "6" };
+      var a = t.split("");
+      [0, 1, 2].forEach(function (k) { if (L[a[k]]) a[k] = L[a[k]]; });
+      [3, 5, 6].forEach(function (k) { if (D[a[k]]) a[k] = D[a[k]]; });
+      return a.join("");
+    }
+    function trocas(a, b) { var n = 0; for (var k = 0; k < a.length; k++) if (a[k] !== b[k]) n++; return n; }
+    for (var c = 0; c < cand.length; c++) {
+      var t = cand[c].replace(/-/g, "");
+      var opcoes = t.length === 7 ? [t] : t.length === 8 ? t.split("").map(function (_, k) { return t.slice(0, k) + t.slice(k + 1); }) : [];
+      var melhor = null, menos = 99;
+      opcoes.forEach(function (op) { var p = corrige(op); if (ok.test(p) && trocas(op, p) < menos) { melhor = p; menos = trocas(op, p); } });
+      if (melhor) return melhor;
+    }
+    return "";
+  }
+
   // A linha só conta se a palavra vier ANTES da data (evita "até 20%" de outra linha).
   function classificar(l) {
     var antes = l.toLowerCase().split(/\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/)[0];
-    if (/limite|prazo|apresenta|vencimento/.test(antes)) return "prazo";
-    if (/expedi|emiss|postag|envio|remessa/.test(antes)) return "expedicao";
-    if (/infra|cometimento|ocorr|data\/hora|data e hora/.test(antes)) return "infracao";
+    if (/limite|prazo|apresenta|vencimento|interposi/.test(antes)) return "prazo";
+    if (/expedid|expedi[çc]/.test(antes)) return "expedicao";
+    if (/postag|emiss|envio|remessa/.test(antes)) return "postagem";
+    if (/infra|cometimento|ocorr|data\/hora|data e hora|data\s+hora/.test(antes)) return "infracao";
     return "";
   }
 
@@ -39,18 +66,25 @@
     r.datas = r.datas.filter(function (x) { var a = +x.data.slice(0, 4); return a >= anoAtual - 6 && a <= anoAtual + 1; });
 
     function primeira(tipo) { var d = r.datas.filter(function (x) { return x.tipo === tipo; })[0]; return d ? d.data : ""; }
+    var tudoMin = texto.toLowerCase();
+    // 2ª carta (penalidade): a "postagem" é desta carta, não da autuação. Fase = recurso à JARI.
+    r.penalidade = /imposi[çc][ãa]o\s+da\s+penalidade|penalidade de multa/.test(tudoMin);
+    r.fase = r.penalidade ? "jari" : "previa";
+    r.semAbordagem = /280\s*(§|par[áa]grafo)?\s*3|sem abordagem|n[ãa]o abordad/.test(tudoMin);
+
     r.dataInfracao = primeira("infracao");
-    r.dataExpedicao = primeira("expedicao");
+    r.dataExpedicao = primeira("expedicao") || (r.penalidade ? "" : primeira("postagem"));
     r.prazo = primeira("prazo");
 
-    // Sem rótulo legível: pela ordem, a mais antiga é a infração, a mais nova é o prazo, a do meio é a emissão.
+    // Sem rótulo legível: pela ordem, a mais antiga é a infração e a mais nova é o prazo.
+    // A data do meio só vira "emissão" na 1ª carta — e palpite nunca marca o art. 281 sozinho.
     r.palpites = [];
-    var usadas = [r.dataInfracao, r.dataExpedicao, r.prazo];
+    var usadas = [r.dataInfracao, r.dataExpedicao, r.prazo].concat(r.penalidade ? r.datas.filter(function (x) { return x.tipo === "postagem"; }).map(function (x) { return x.data; }) : []);
     var soltas = r.datas.map(function (x) { return x.data; })
       .filter(function (d, i, a) { return a.indexOf(d) === i && usadas.indexOf(d) < 0; }).sort();
     if (!r.dataInfracao && soltas.length && (!r.dataExpedicao || soltas[0] < r.dataExpedicao)) { r.dataInfracao = soltas.shift(); r.palpites.push("data da infração"); }
     if (!r.prazo && soltas.length) { r.prazo = soltas.pop(); r.palpites.push("prazo"); }
-    if (!r.dataExpedicao && soltas.length) { r.dataExpedicao = soltas[soltas.length - 1]; r.palpites.push("data de emissão"); }
+    if (!r.dataExpedicao && soltas.length && !r.penalidade) { r.dataExpedicao = soltas[soltas.length - 1]; r.palpites.push("data de emissão"); }
 
     var tudo = linhas.join("\n");
     var maius = tudo.toUpperCase();
@@ -59,7 +93,7 @@
     r.hora = hora ? hora[1] + ":" + hora[2] : "";
 
     var placa = maius.match(/\b([A-Z]{3})[\s\-]?(\d)([A-Z0-9])(\d{2})\b/);
-    r.placa = placa ? placa[1] + placa[2] + placa[3] + placa[4] : "";
+    r.placa = placa ? placa[1] + placa[2] + placa[3] + placa[4] : placaTolerante(linhas);
 
     var ren = tudo.match(/renavam\D{0,20}(\d{9,11})/i) || tudo.match(/\b(\d{11})\b/);
     r.renavam = ren ? ren[1] : "";
@@ -74,20 +108,43 @@
       if (m && !/cep/i.test(l)) { cod = { c: m[1] + "-" + m[2], l: l }; return true; }
       return false;
     });
+    // DER-SP: "Código da Infração" na linha de cima e "676 9" (sem hífen) na de baixo.
+    if (!cod) linhas.some(function (l, i) {
+      if (!/c[óo]digo\s+da\s+infra/i.test(l)) return false;
+      // Na linha de baixo, o 1º número de 3-4 dígitos seguido de 1 dígito: "676 9".
+      var m = (linhas[i + 1] || "").match(/(?:^|[^\d])(\d{3,4})\s?-?\s?(\d)(?!\d)/);
+      if (m) { cod = { c: m[1] + "-" + m[2], l: "" }; return true; }
+      return false;
+    });
+    var descLinha = linhas.findIndex(function (l) { return /descri[çc][ãa]o\s+da\s+infra/i.test(l); });
+    if (cod && !cod.l && descLinha >= 0) {
+      var dl = linhas[descLinha].replace(/.*descri[çc][ãa]o\s+da\s+infra[çc][ãa]o\s*:?\s*/i, "");
+      cod.l = cod.c + " " + (dl.length > 3 ? dl : (linhas[descLinha + 1] || ""));
+    }
     if (cod) {
-      var desc = cod.l.slice(cod.l.indexOf(cod.c.split("-")[0])).replace(/^\d{3,4}\s?-\s?\d{1,2}\s*[-–:]?\s*/, "");
+      var desc = cod.l.slice(cod.l.indexOf(cod.c.split("-")[0])).replace(/^\d{3,4}\s?-?\s?\d{1,2}\s*[-–:]?\s*/, "");
       r.infracao = cod.c + (desc ? " – " + desc : "");
     } else r.infracao = "";
 
-    var org = linhas.filter(function (l) { return /\b(DER|DETRAN|PRF|DNIT|PREFEITURA|EMDEC|CET|SETRAN|DEMUTRAN|AG[ÊE]NCIA)\b/i.test(l); })[0];
-    r.orgao = org || "";
+    // Nº do auto: rótulo na mesma linha ou formato típico ("1DL550079-2").
+    if (!/\d{5}/.test(auto ? auto[1] : "")) {
+      var a2 = maius.match(/\b(\d?[A-Z]{1,3}\d{6,9}-?\d?)\b/);
+      r.auto = a2 ? a2[1] : "";
+    }
+
+    var orgRe = /^(DEPARTAMENTO|DETRAN|DER\b|PREFEITURA|POL[IÍ]CIA|DNIT|AG[ÊE]NCIA|SECRETARIA|EMDEC|CET\b|SETRAN|DEMUTRAN)/i;
+    var org = linhas.filter(function (l) { return orgRe.test(l); })[0] ||
+      linhas.filter(function (l) { return /\b(DER|DETRAN|PRF|DNIT|PREFEITURA|EMDEC|CET|SETRAN|DEMUTRAN)\b/.test(l) && l.length < 70; })[0];
+    r.orgao = org ? org.replace(/\s+\d[\d.]*\s.*$/, "").trim() : "";
 
     function depois(re) {
       for (var i = 0; i < linhas.length; i++) {
         var m = linhas[i].match(re);
         if (m) {
           var resto = linhas[i].slice(m.index + m[0].length).replace(/^[\s:.\-]+/, "");
-          return resto.length > 3 ? resto : (linhas[i + 1] || "");
+          // Linha de rótulos (tabela): o valor está na linha de baixo.
+          var soRotulo = /rodovia|\bkm\b|sentido|munic[íi]pio|esp[ée]cie|\buf\b/i.test(resto);
+          return resto.length > 3 && !soRotulo ? resto : (linhas[i + 1] || "");
         }
       }
       return "";
@@ -178,11 +235,18 @@
     var achados = [];
     if (r.dataInfracao && r.dataExpedicao) {
       var d = dias(r.dataInfracao, r.dataExpedicao);
-      if (d > 30) { setCampo("a_prazo30", true); achados.push("⚠️ Notificação expedida " + d + " dias depois da infração (art. 281): ponto forte de defesa."); }
+      if (d > 30 && r.palpites.indexOf("data de emissão") >= 0) achados.push("As datas sugerem " + d + " dias entre infração e emissão, mas foi dedução minha. Confira na carta antes de marcar o art. 281.");
+      else if (d > 30) { setCampo("a_prazo30", true); achados.push("⚠️ Notificação expedida " + d + " dias depois da infração (art. 281): ponto forte de defesa."); }
       else achados.push("Prazo de 30 dias respeitado (" + d + " dias).");
     } else if (!r.dataInfracao) achados.push("Não achei a data da infração: toque nela na lista de datas abaixo.");
     else achados.push("Não achei a data de emissão/postagem: toque nela na lista de datas abaixo.");
     if (r.palpites.length) achados.push("Pela ordem das datas, deduzi: " + r.palpites.join(", ") + ". Confira — se estiver trocado, toque no botão certo abaixo.");
+    if (r.penalidade) {
+      f.elements.fase.value = "jari";
+      achados.push("Esta é a 2ª carta (imposição da penalidade): escolhi a fase “Recurso à JARI”. A data de expedição que vale é a da notificação de AUTUAÇÃO (a 1ª carta), não a da postagem desta.");
+    }
+    if (r.semAbordagem) { setCampo("a_semAbordagem", true); achados.push("Autuação sem abordagem (art. 280, §3º): marquei o argumento."); }
+    achados.push("Pergunte ao cliente: teve outra multa nos últimos 12 meses? Se NÃO e a infração for leve ou média, marque a advertência por escrito (art. 267) — costuma ser o ponto mais forte.");
     if (r.radar) { setCampo("a_radar", true); achados.push("Infração de radar: marquei o pedido de prova da aferição do Inmetro."); }
     if (r.faltando.length) {
       achados.push("Não encontrei: " + r.faltando.join(", ") + ". Confira na foto. Se faltar de verdade na notificação, marque “Falta ou erro em dado obrigatório” (art. 280).");

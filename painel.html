@@ -149,7 +149,7 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
-<script src="leitura.js?v=2" defer></script>
+<script src="leitura.js?v=4" defer></script>
 <script>
 (function () {
   var C = window.DP || {};
@@ -185,9 +185,14 @@
       curto: function (d, x) { return "O enquadramento da infração parece errado: " + x + "."; },
       titulo: "DO ENQUADRAMENTO INCORRETO",
       texto: function (d, x) { return "A conduta descrita não corresponde ao enquadramento atribuído no auto de infração: " + x + ". A tipificação correta é requisito obrigatório do auto (art. 280, inciso I, do CTB), e o erro de enquadramento o torna inconsistente, devendo ser arquivado."; } },
-    { id: "advertencia", t: "Pedir advertência por escrito (infração leve/média, sem multa em 12 meses)", h: "",
-      curto: function () { return "Como a infração é leve ou média, dá para pedir que vire só advertência por escrito (art. 267 do CTB)."; },
-      titulo: null, texto: null },
+    { id: "semAbordagem", t: "Autuação sem abordagem, sem motivo descrito (art. 280, §3º)", h: "Quando o auto diz que o veículo não foi parado e não explica por quê.",
+      curto: function () { return "O agente não parou o veículo e não explicou por que a abordagem não foi possível (art. 280, §3º, do CTB)."; },
+      titulo: "DA AUTUAÇÃO SEM ABORDAGEM E SEM JUSTIFICATIVA",
+      texto: function () { return "O auto de infração foi lavrado sem a abordagem do condutor, com fundamento no art. 280, § 3º, do CTB. Esse dispositivo, porém, só admite a autuação sem flagrante quando ela não for possível, e exige que o agente relate o fato à autoridade. No caso, o auto não descreve nenhuma circunstância concreta que impedisse a abordagem, limitando-se a citar o dispositivo. A ausência de abordagem e de justificativa retirou do condutor a possibilidade de constatar e esclarecer, no momento, a suposta irregularidade, o que compromete a comprovação da infração e o direito de defesa (art. 5º, inciso LV, da Constituição Federal). Requer-se, por isso, o arquivamento do auto."; } },
+    { id: "advertencia", t: "Advertência por escrito no lugar da multa (leve/média, sem multa em 12 meses — art. 267)", h: "Pergunte ao cliente se ele teve outra multa nos últimos 12 meses.",
+      curto: function () { return "A infração é leve ou média e, sem outra multa nos últimos 12 meses, a lei manda aplicar advertência por escrito no lugar da multa (art. 267 do CTB)."; },
+      titulo: "DA APLICAÇÃO OBRIGATÓRIA DA ADVERTÊNCIA POR ESCRITO",
+      texto: function () { return "A infração imputada é de natureza leve ou média, e o(a) requerente não cometeu nenhuma outra infração nos últimos 12 (doze) meses. Nessa hipótese, o art. 267 do CTB, com a redação dada pela Lei nº 14.071/2020, determina que deverá ser imposta a penalidade de advertência por escrito, e não a de multa. Trata-se de comando legal, e não de faculdade da autoridade, de modo que, mantida a autuação, a penalidade de multa deve ser convertida em advertência por escrito."; } },
   ];
 
   var box = document.getElementById("args");
