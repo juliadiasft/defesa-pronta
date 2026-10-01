@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acompanhamento confirmado — Defesa Pronta</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b2545">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo"><div class="wrap"><a class="logo" href="./">Defesa<span>Pronta</span></a></div></header>
+<section class="bloco"><div class="wrap">
+  <h2>✅ Acompanhamento confirmado!</h2>
+  <p>A partir de agora, a gente cuida das próximas fases da sua multa:</p>
+  <div class="cartao">
+    <ul class="lista">
+      <li>Se a defesa for negada, preparamos o <b>recurso à JARI</b></li>
+      <li>Se a JARI negar, preparamos o <b>recurso de 2ª instância</b></li>
+      <li>Avisamos você de <b>cada prazo</b> pelo WhatsApp</li>
+    </ul>
+    <p class="ajuda" style="margin-top:12px">Sempre que chegar uma carta nova do órgão de trânsito, mande a foto para a gente.</p>
+    <a class="btn btn-verde" target="_blank" rel="noopener" id="enviar">Avisar no WhatsApp →</a>
+  </div>
+  <p class="aviso" style="margin-top:14px">Não garantimos cancelamento: quem decide é o órgão de trânsito.</p>
+</div></section>
+<footer><div class="wrap"><a href="privacidade.html">Privacidade e termos</a></div></footer>
+<script src="config.js"></script>
+<script>
+  var C = window.DP || {};
+  document.getElementById("enviar").href = "https://wa.me/" + (C.whatsapp || "") + "?text=" + encodeURIComponent("Olá! Comprei o acompanhamento até a 2ª instância.\n\nNome:\nE-mail da compra:\nPlaca do veículo:");
+</script>
+</body>
+</html>

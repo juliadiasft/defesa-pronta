@@ -6,10 +6,10 @@ window.DP = {
 
   // Link do checkout da Cakto (R$37,90). Vazio = o botão de compra
   // abre o WhatsApp e você cobra por Pix na mão.
-  checkout: "",
+  checkout: "https://pay.cakto.com.br/sb7p7j4_1162339",
 
   // Link do checkout da Cakto do acompanhamento (R$97). Vazio = WhatsApp.
-  checkoutAcompanhamento: "",
+  checkoutAcompanhamento: "https://pay.cakto.com.br/uj7bpg9_1162392",
 
   preco: "37,90",
   precoAcompanhamento: "97",
