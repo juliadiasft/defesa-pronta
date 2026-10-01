@@ -75,21 +75,26 @@ async function analisar(req, env) {
   }
   parts.push({ text: PROMPT });
 
-  const modelo = env.MODELO || "gemini-3.6-flash";
+  // Camada grátis às vezes fica cheia (503/429): tenta o próximo modelo da lista.
+  const modelos = (env.MODELO || "gemini-3.6-flash").split(",").map((m) => m.trim()).filter(Boolean);
   const base = env.GEMINI_URL || "https://generativelanguage.googleapis.com/v1beta/models/";
-  const r = await fetch(`${base}${modelo}:generateContent`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_KEY },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts }],
-      generationConfig: { temperature: 0, responseMimeType: "application/json", responseSchema: SCHEMA },
-    }),
+  const corpoIA = JSON.stringify({
+    contents: [{ role: "user", parts }],
+    generationConfig: { temperature: 0, responseMimeType: "application/json", responseSchema: SCHEMA },
   });
-  await env.PEDIDOS.put(chaveIp, String(usos + 1), { expirationTtl: 2 * DIA });
-  if (!r.ok) {
-    console.error("gemini", r.status, (await r.text()).slice(0, 500));
-    return json(req, { erro: "A leitura falhou agora. Tente de novo em instantes." }, 502);
+  let r = null;
+  for (const modelo of modelos) {
+    r = await fetch(`${base}${modelo}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": (env.GEMINI_KEY || "").trim() },
+      body: corpoIA,
+    });
+    if (r.ok) break;
+    console.error("gemini " + modelo + " " + r.status + " " + (await r.text()).slice(0, 300));
+    if (r.status !== 503 && r.status !== 429 && r.status !== 500 && r.status !== 404) break;
   }
+  await env.PEDIDOS.put(chaveIp, String(usos + 1), { expirationTtl: 2 * DIA });
+  if (!r || !r.ok) return json(req, { erro: "A leitura está congestionada agora. Tente de novo em 1 minuto." }, 502);
   const g = await r.json();
   const txt = g?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
   let fatos;

@@ -3,13 +3,13 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 
 [vars]
-MODELO = "gemini-3.6-flash"
+MODELO = "gemini-3.6-flash,gemini-3.5-flash,gemini-2.5-flash,gemini-flash-latest"
 # Produto "Defesa Pronta" (R$37,90) na Cakto
 PRODUTO_ID = "a5aeb8bc-ef3e-4efc-a79e-067508b80f30"
 
 # Criado no deploy com: npx wrangler kv namespace create PEDIDOS
 [[kv_namespaces]]
 binding = "PEDIDOS"
-id = "PREENCHER_NO_DEPLOY"
+id = "873ac146179b4ff4b9bca093d940e9a0"
 
 # Segredos (NUNCA neste arquivo): npx wrangler secret put GEMINI_KEY / CAKTO_SECRET / ADMIN_TOKEN
