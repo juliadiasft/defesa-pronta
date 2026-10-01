@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pedido recebido — Defesa Pronta</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b2545">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topo"><div class="wrap"><a class="logo" href="./">Defesa<span>Pronta</span></a></div></header>
+
+<section class="bloco"><div class="wrap">
+  <h2>✅ Pedido recebido!</h2>
+  <p>Falta só um passo para a gente montar a sua defesa. Mande no WhatsApp:</p>
+  <div class="cartao">
+    <ul class="lista">
+      <li>Foto da <b>notificação</b> (frente e verso)</li>
+      <li>Seu <b>nome completo</b> e <b>CPF</b> (do condutor ou do dono do veículo)</li>
+      <li>Seu <b>endereço</b> completo</li>
+      <li>O <b>e-mail</b> usado na compra</li>
+    </ul>
+    <a class="btn btn-verde" style="margin-top:14px" target="_blank" rel="noopener" id="enviar">Enviar no WhatsApp →</a>
+    <p class="mini">Sua defesa em PDF chega pelo WhatsApp, com o passo a passo para protocolar.</p>
+  </div>
+
+  <div class="cartao" style="margin-top:20px; border:2px solid var(--amarelo)">
+    <b style="font-size:19px">Quer que a gente acompanhe até o fim?</b>
+    <p class="ajuda" style="margin:6px 0 12px">Se a defesa for negada, você precisa recorrer de novo, primeiro à JARI e depois à 2ª instância. No acompanhamento, a gente prepara <b>todos os recursos seguintes</b> e lembra você de cada prazo.</p>
+    <div class="preco">R$ <span id="precoA">97</span> <small>pagamento único</small></div>
+    <a class="btn btn-amarelo" style="margin-top:12px" target="_blank" rel="noopener" id="acompanhar">Quero o acompanhamento</a>
+    <p class="mini">Não garantimos cancelamento: quem decide é o órgão de trânsito.</p>
+  </div>
+</div></section>
+
+<footer><div class="wrap"><a href="privacidade.html">Privacidade e termos</a></div></footer>
+
+<script src="config.js"></script>
+<script>
+  var C = window.DP || {};
+  function whats(t) { return "https://wa.me/" + (C.whatsapp || "") + "?text=" + encodeURIComponent(t); }
+  document.getElementById("enviar").href = whats("Olá! Comprei a Defesa Pronta. Seguem meus dados e a foto da notificação 👇\n\nNome:\nCPF:\nEndereço:\nE-mail da compra:");
+  document.getElementById("precoA").textContent = C.precoAcompanhamento || "97";
+  document.getElementById("acompanhar").href = C.checkoutAcompanhamento || whats("Olá! Quero o acompanhamento até a 2ª instância (R$" + (C.precoAcompanhamento || "97") + ").");
+</script>
+</body>
+</html>

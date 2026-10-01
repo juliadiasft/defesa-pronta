@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel — Defesa Pronta</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { font-size: 16px; }
+  .wrap { max-width: 760px; }
+  fieldset { border: 1px solid var(--borda); border-radius: 12px; background: #fff; padding: 14px 16px 6px; margin: 0 0 14px; }
+  legend { font-weight: 800; padding: 0 6px; }
+  label { display: block; font-size: 14px; color: var(--suave); margin-bottom: 10px; }
+  input, select, textarea { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; font: inherit; color: var(--texto); border: 1px solid var(--borda); border-radius: 8px; background: #fff; }
+  textarea { min-height: 70px; }
+  .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  @media (max-width: 520px) { .dupla { grid-template-columns: 1fr; } }
+  .arg { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--borda); color: var(--texto); font-size: 15px; margin: 0; }
+  .arg:last-child { border-bottom: 0; }
+  .arg input[type=checkbox] { width: 20px; height: 20px; margin: 2px 0 0; flex: none; }
+  .arg small { display: block; color: var(--suave); }
+  .extra { display: none; margin-top: 6px; }
+  .arg input:checked ~ div .extra { display: block; }
+  .abas { display: flex; gap: 8px; margin: 18px 0 14px; flex-wrap: wrap; }
+  .abas button { flex: 1; min-width: 140px; padding: 12px; border-radius: 10px; border: 2px solid var(--borda); background: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+  .abas button.ativa { border-color: var(--azul); background: var(--azul); color: #fff; }
+  .saida { white-space: pre-wrap; background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 14px; font-size: 15px; }
+  #documento { background: #fff; color: #000; border: 1px solid var(--borda); border-radius: 4px; padding: 48px 52px; font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.6; }
+  #documento h1 { font-size: 15px; text-align: center; margin: 0 0 22px; letter-spacing: .5px; }
+  #documento h2 { font-size: 15px; margin: 22px 0 8px; }
+  #documento p { text-align: justify; margin: 0 0 10px; }
+  #documento .assin { margin-top: 48px; text-align: center; }
+  #documento .quebra { page-break-before: always; break-before: page; }
+  @media (max-width: 520px) { #documento { padding: 22px 18px; } }
+  @media print {
+    .nao-imprimir, header.topo { display: none !important; }
+    body { background: #fff; }
+    .wrap { max-width: none; padding: 0; }
+    #documento { border: 0; padding: 0; font-size: 12pt; }
+    @page { margin: 2.2cm 2.2cm; }
+  }
+</style>
+</head>
+<body>
+<header class="topo"><div class="wrap"><span class="logo">Defesa<span>Pronta</span></span><span style="margin-left:auto;font-size:14px;color:#c3d3e6">painel interno</span></div></header>
+
+<div class="wrap">
+<div class="nao-imprimir">
+  <p class="aviso" style="margin-top:16px">Nada do que você digita aqui sai deste aparelho. Ao terminar um cliente, toque em <b>Limpar cliente</b> (LGPD).</p>
+
+  <form id="f" autocomplete="off">
+  <fieldset>
+    <legend>Pedido</legend>
+    <div class="dupla">
+      <label>Nº da análise<input name="protocolo" placeholder="DP-1234"></label>
+      <label>Fase
+        <select name="fase">
+          <option value="previa">Defesa prévia (notificação de autuação)</option>
+          <option value="jari">Recurso à JARI (notificação de penalidade)</option>
+          <option value="cetran">Recurso de 2ª instância (CETRAN)</option>
+        </select>
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Requerente</legend>
+    <label>Nome completo<input name="nome"></label>
+    <div class="dupla">
+      <label>CPF<input name="cpf" inputmode="numeric"></label>
+      <label>Nº da CNH (registro)<input name="cnh" inputmode="numeric"></label>
+    </div>
+    <label>Endereço completo<input name="endereco"></label>
+    <label>Qualidade
+      <select name="qualidade">
+        <option value="proprietário(a) e condutor(a)">Proprietário e condutor</option>
+        <option value="proprietário(a)">Só proprietário</option>
+        <option value="condutor(a) indicado(a)">Só condutor (indicado)</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Veículo e auto de infração</legend>
+    <div class="dupla">
+      <label>Placa<input name="placa" style="text-transform:uppercase"></label>
+      <label>Marca/modelo<input name="modelo"></label>
+      <label>RENAVAM<input name="renavam" inputmode="numeric"></label>
+      <label>Nº do auto de infração<input name="auto"></label>
+      <label>Órgão autuador<input name="orgao" placeholder="Ex.: DER-SP, Prefeitura de Campinas (EMDEC)"></label>
+      <label>UF<input name="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase"></label>
+      <label>Data da infração<input name="dataInfracao" type="date"></label>
+      <label>Hora<input name="hora" type="time"></label>
+      <label>Data de expedição da notificação<input name="dataExpedicao" type="date"></label>
+      <label>Prazo para defesa/recurso<input name="prazo" type="date"></label>
+    </div>
+    <label>Local da infração<input name="local"></label>
+    <label>Infração (código e descrição, como está na notificação)<input name="infracao" placeholder="Ex.: 745-50 – Transitar em velocidade superior à máxima permitida em até 20%"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Pontos de defesa encontrados</legend>
+    <div id="args"></div>
+    <label style="margin-top:10px">Fatos contados pelo cliente (opcional)<textarea name="fatos" placeholder="Ex.: no horário eu estava em outro local, com corrida registrada no app..."></textarea></label>
+  </fieldset>
+  </form>
+
+  <div class="abas" id="abas">
+    <button data-aba="analise" class="ativa">1. Mensagem da análise</button>
+    <button data-aba="defesa">2. Defesa em PDF</button>
+    <button data-aba="entrega">3. Mensagem de entrega</button>
+  </div>
+</div>
+
+<div data-painel="analise" class="nao-imprimir">
+  <div class="saida" id="msgAnalise"></div>
+  <button class="btn btn-verde" style="margin-top:10px" data-copiar="msgAnalise">Copiar mensagem</button>
+</div>
+
+<div data-painel="defesa" hidden>
+  <div class="nao-imprimir" style="margin-bottom:12px">
+    <button class="btn btn-amarelo" onclick="window.print()">Baixar PDF</button>
+    <p class="mini">Na janela que abrir, escolha <b>Salvar como PDF</b>. No celular: Compartilhar → Imprimir → Salvar PDF.</p>
+  </div>
+  <div id="documento"></div>
+</div>
+
+<div data-painel="entrega" class="nao-imprimir" hidden>
+  <div class="saida" id="msgEntrega"></div>
+  <button class="btn btn-verde" style="margin-top:10px" data-copiar="msgEntrega">Copiar mensagem</button>
+</div>
+
+<div class="nao-imprimir" style="margin:26px 0 40px">
+  <button class="btn btn-claro" id="limpar">Limpar cliente</button>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var C = window.DP || {};
+  var f = document.getElementById("f");
+
+  // Cada ponto: texto curto (para a análise) e parágrafo (para a defesa).
+  var ARGS = [
+    { id: "prazo30", t: "Notificação expedida depois de 30 dias", h: "Preencha a data da infração e a de expedição.",
+      curto: function (d) { return "A notificação foi expedida " + dias(d) + " dias depois da infração. A lei dá 30 dias (art. 281 do CTB)."; },
+      titulo: "DA NOTIFICAÇÃO EXPEDIDA FORA DO PRAZO LEGAL",
+      texto: function (d) { return "A infração teria ocorrido em " + br(d.dataInfracao) + ", e a notificação da autuação somente foi expedida em " + br(d.dataExpedicao) + ", ou seja, " + dias(d) + " dias depois. O art. 281, parágrafo único, inciso II, do Código de Trânsito Brasileiro determina que o auto de infração será arquivado e seu registro julgado insubsistente se, no prazo máximo de 30 (trinta) dias, não for expedida a notificação da autuação. Ultrapassado o prazo legal, impõe-se o arquivamento do auto de infração."; } },
+    { id: "naoNotificado", t: "Não recebeu a notificação da autuação", h: "",
+      curto: function () { return "Você não recebeu a notificação da autuação, que é obrigatória antes da multa."; },
+      titulo: "DA AUSÊNCIA DE NOTIFICAÇÃO DA AUTUAÇÃO",
+      texto: function () { return "O(A) requerente não recebeu a notificação da autuação, etapa obrigatória que garante o direito de defesa antes da aplicação da penalidade (arts. 280, inciso VI, 281 e 282 do CTB, e art. 5º, inciso LV, da Constituição Federal). Requer-se que o órgão autuador comprove a expedição e a entrega da notificação no endereço do(a) requerente, sob pena de nulidade do procedimento."; } },
+    { id: "dados", t: "Falta ou erro em dado obrigatório do auto", h: "Descreva o que falta ou está errado.", extra: "Ex.: o auto não traz a identificação do agente autuador",
+      curto: function (d, x) { return "Dado obrigatório com problema: " + x + " (art. 280 do CTB)."; },
+      titulo: "DA IRREGULARIDADE DE REQUISITO OBRIGATÓRIO DO AUTO",
+      texto: function (d, x) { return "O art. 280 do CTB estabelece os elementos que obrigatoriamente devem constar do auto de infração, entre eles a tipificação da infração, o local, a data e a hora do cometimento, os caracteres da placa, a marca e a espécie do veículo, e a identificação do órgão ou entidade e do agente autuador. No presente caso, verifica-se a seguinte irregularidade: " + x + ". A ausência ou o erro de requisito obrigatório torna o auto inconsistente, devendo ser arquivado, nos termos do art. 281, parágrafo único, inciso I, do CTB."; } },
+    { id: "veiculo", t: "Veículo descrito diferente do real", h: "Diga o que diverge.", extra: "Ex.: o auto diz Fiat Palio prata; o veículo é um Onix branco",
+      curto: function (d, x) { return "O veículo do auto não confere com o seu: " + x + "."; },
+      titulo: "DA DIVERGÊNCIA ENTRE O VEÍCULO AUTUADO E O VEÍCULO DO REQUERENTE",
+      texto: function (d, x) { return "Os dados do veículo constantes do auto de infração não correspondem ao veículo de placa " + up(d.placa) + " (" + d.modelo + "), pertencente ao(à) requerente: " + x + ". A divergência indica erro na identificação do veículo, o que torna o auto inconsistente (arts. 280, inciso IV, e 281, parágrafo único, inciso I, do CTB), conforme documento do veículo (CRLV) anexo."; } },
+    { id: "radar", t: "Radar: pedir prova de aferição do Inmetro", h: "",
+      curto: function () { return "A notificação não comprova que o radar estava com a verificação do Inmetro em dia."; },
+      titulo: "DA REGULARIDADE DO EQUIPAMENTO MEDIDOR",
+      texto: function () { return "Nos termos do art. 280, § 2º, do CTB, a infração comprovada por equipamento eletrônico exige que o instrumento seja previamente regulamentado pelo CONTRAN, o que inclui a verificação metrológica periódica pelo Inmetro ou entidade por ele acreditada. A notificação não traz prova de que o equipamento estava com a verificação válida na data da infração. Requer-se a apresentação do certificado de verificação vigente e dos dados de identificação do equipamento; não sendo comprovada a regularidade, o auto deve ser arquivado."; } },
+    { id: "sinalizacao", t: "Sinalização ausente ou ruim no local", h: "Descreva (de preferência com foto do local).", extra: "Ex.: placa de proibido estacionar coberta por árvore",
+      curto: function (d, x) { return "A sinalização do local era insuficiente: " + x + " (art. 90 do CTB)."; },
+      titulo: "DA SINALIZAÇÃO INSUFICIENTE",
+      texto: function (d, x) { return "O art. 90 do CTB dispõe que não serão aplicadas as sanções previstas no Código por inobservância à sinalização quando esta for insuficiente ou incorreta. No local da suposta infração, verifica-se: " + x + ". Sem sinalização suficiente e legível, não se pode exigir do condutor a conduta tida por violada, devendo o auto ser arquivado."; } },
+    { id: "tipificacao", t: "Enquadramento errado da infração", h: "Explique o erro.", extra: "Ex.: autuado por estacionar em local proibido, mas era parada para embarque",
+      curto: function (d, x) { return "O enquadramento da infração parece errado: " + x + "."; },
+      titulo: "DO ENQUADRAMENTO INCORRETO",
+      texto: function (d, x) { return "A conduta descrita não corresponde ao enquadramento atribuído no auto de infração: " + x + ". A tipificação correta é requisito obrigatório do auto (art. 280, inciso I, do CTB), e o erro de enquadramento o torna inconsistente, devendo ser arquivado."; } },
+    { id: "advertencia", t: "Pedir advertência por escrito (infração leve/média, sem multa em 12 meses)", h: "",
+      curto: function () { return "Como a infração é leve ou média, dá para pedir que vire só advertência por escrito (art. 267 do CTB)."; },
+      titulo: null, texto: null },
+  ];
+
+  var box = document.getElementById("args");
+  ARGS.forEach(function (a) {
+    var h = '<label class="arg"><input type="checkbox" name="a_' + a.id + '"><div>' + a.t;
+    if (a.h) h += "<small>" + a.h + "</small>";
+    if (a.extra) h += '<div class="extra"><textarea name="x_' + a.id + '" placeholder="' + a.extra + '"></textarea></div>';
+    h += "</div></label>";
+    box.insertAdjacentHTML("beforeend", h);
+  });
+
+  function dados() {
+    var d = {};
+    Array.prototype.forEach.call(f.elements, function (el) {
+      if (!el.name) return;
+      d[el.name] = el.type === "checkbox" ? el.checked : el.value.trim();
+    });
+    return d;
+  }
+  function br(iso) { if (!iso) return "___/___/____"; var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
+  function dias(d) {
+    if (!d.dataInfracao || !d.dataExpedicao) return "___";
+    return Math.round((new Date(d.dataExpedicao) - new Date(d.dataInfracao)) / 864e5);
+  }
+  function up(s) { return (s || "").toUpperCase(); }
+  function ou(s, padrao) { return s || padrao; }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+  function marcados(d) {
+    return ARGS.filter(function (a) { return d["a_" + a.id]; }).map(function (a) {
+      return { a: a, x: d["x_" + a.id] || "(descrever)" };
+    });
+  }
+
+  function msgAnalise(d) {
+    var m = marcados(d);
+    var prot = ou(d.protocolo, "");
+    if (!m.length) {
+      return "Olá! Sua análise" + (prot ? " nº " + prot : "") + " ficou pronta.\n\nConferimos sua notificação ponto por ponto e, com sinceridade, não encontramos erro que sustente uma defesa. Por isso não vamos te cobrar nada. 🙏\n\nSe chegar outra multa, é só mandar que a gente analisa de novo.";
+    }
+    var s = "Olá! Sua análise" + (prot ? " nº " + prot : "") + " ficou pronta ✅\n\nEncontramos " + m.length + " ponto" + (m.length > 1 ? "s" : "") + " para usar na sua defesa:\n\n";
+    m.forEach(function (p, i) { s += (i + 1) + ". " + p.a.curto(d, p.x) + "\n"; });
+    if (d.prazo) s += "\n⏰ Seu prazo vai até " + br(d.prazo) + ".";
+    s += "\n\nCom a Defesa Pronta (R$" + (C.preco || "37,90") + "), você recebe a defesa escrita com esses argumentos, em PDF, e o passo a passo para protocolar.";
+    s += C.checkout ? "\n\nÉ só pagar por aqui: " + C.checkout : "\n\nQuer que a gente prepare? É só responder SIM que enviamos o Pix.";
+    s += "\n\n(Quem decide é o órgão de trânsito; não dá para garantir o cancelamento, mas a sua defesa vai bem feita.)";
+    return s;
+  }
+
+  function enderecamento(d) {
+    var org = up(ou(d.orgao, "[ÓRGÃO AUTUADOR]"));
+    if (d.fase === "jari") return "ILUSTRÍSSIMO(A) SENHOR(A) PRESIDENTE DA JUNTA ADMINISTRATIVA DE RECURSOS DE INFRAÇÕES (JARI) DO " + org;
+    if (d.fase === "cetran") return "ILUSTRÍSSIMO(A) SENHOR(A) PRESIDENTE DO CONSELHO ESTADUAL DE TRÂNSITO (CETRAN/" + up(ou(d.uf, "UF")) + ")";
+    return "ILUSTRÍSSIMO(A) SENHOR(A) DIRIGENTE DA AUTORIDADE DE TRÂNSITO DO " + org;
+  }
+  function nomePeca(d) {
+    if (d.fase === "jari") return "RECURSO";
+    if (d.fase === "cetran") return "RECURSO EM 2ª INSTÂNCIA";
+    return "DEFESA PRÉVIA";
+  }
+
+  function documento(d) {
+    var m = marcados(d);
+    var fund = m.filter(function (p) { return p.a.titulo; });
+    var adv = m.some(function (p) { return p.a.id === "advertencia"; });
+    var h = "<h1>" + esc(enderecamento(d)) + "</h1>";
+    h += "<p><b>Auto de infração nº " + esc(ou(d.auto, "________")) + "</b><br>Placa: " + esc(up(ou(d.placa, "________"))) + "</p>";
+    h += "<p><b>" + esc(ou(d.nome, "[NOME]").toUpperCase()) + "</b>, inscrito(a) no CPF sob o nº " + esc(ou(d.cpf, "________")) + ", habilitado(a) sob o registro nº " + esc(ou(d.cnh, "________")) + ", residente em " + esc(ou(d.endereco, "________")) + ", na qualidade de " + esc(d.qualidade) + " do veículo " + esc(ou(d.modelo, "________")) + ", placa " + esc(up(ou(d.placa, "________"))) + ", RENAVAM " + esc(ou(d.renavam, "________")) + ", vem, respeitosamente, apresentar <b>" + nomePeca(d) + "</b> referente ao auto de infração acima, pelos fatos e fundamentos a seguir.</p>";
+
+    h += "<h2>I – DOS FATOS</h2>";
+    h += "<p>O(A) requerente foi autuado(a) pela suposta infração “" + esc(ou(d.infracao, "________")) + "”, que teria ocorrido em " + br(d.dataInfracao) + (d.hora ? ", às " + esc(d.hora) : "") + ", no local " + esc(ou(d.local, "________")) + ". Como se demonstrará, o auto de infração não pode subsistir.</p>";
+    if (d.fatos) h += "<p>" + esc(d.fatos) + "</p>";
+
+    h += "<h2>II – DO DIREITO</h2>";
+    if (!fund.length) h += "<p>[Marque pelo menos um ponto de defesa no painel.]</p>";
+    fund.forEach(function (p, i) {
+      h += "<p><b>" + (i + 1) + ". " + p.a.titulo + "</b></p><p>" + esc(p.a.texto(d, p.x)) + "</p>";
+    });
+
+    h += "<h2>III – DO PEDIDO</h2>";
+    h += "<p>Diante do exposto, requer:</p>";
+    h += "<p>a) o acolhimento da presente " + (d.fase === "previa" ? "defesa" : "peça") + ", com o arquivamento do auto de infração nº " + esc(ou(d.auto, "________")) + " e o cancelamento de todos os seus efeitos, inclusive da pontuação no prontuário do(a) requerente;</p>";
+    var letra = "b";
+    if (adv) { h += "<p>" + letra + ") subsidiariamente, sendo a infração de natureza leve ou média e não tendo o(a) requerente cometido a mesma infração nos últimos 12 meses, a aplicação de advertência por escrito em lugar da multa, nos termos do art. 267 do CTB;</p>"; letra = "c"; }
+    h += "<p>" + letra + ") a juntada dos documentos anexos: cópia da notificação, da CNH e do documento do veículo (CRLV).</p>";
+    h += "<p>Nestes termos, pede deferimento.</p>";
+    h += "<p>" + esc(cidade(d)) + ", " + hoje() + ".</p>";
+    h += '<div class="assin">_______________________________________<br>' + esc(ou(d.nome, "[NOME]")) + "<br>CPF " + esc(ou(d.cpf, "")) + "</div>";
+
+    h += '<div class="quebra"></div>';
+    h += "<h1>PASSO A PASSO PARA PROTOCOLAR</h1>";
+    h += passo(d).map(function (t, i) { return "<p><b>" + (i + 1) + ".</b> " + t + "</p>"; }).join("");
+    return h;
+  }
+
+  function cidade(d) { return "_______________"; }
+  function hoje() { var n = new Date(); return n.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }); }
+
+  function passo(d) {
+    var prazo = d.prazo ? "<b>até " + br(d.prazo) + "</b>" : "<b>dentro do prazo que está na notificação</b>";
+    return [
+      "Preencha a cidade e a data no fim da defesa e <b>assine</b>. Pode ser à mão (imprimindo) ou com a assinatura digital gratuita do gov.br, que muitos órgãos aceitam.",
+      "Separe as cópias: <b>notificação</b> (frente e verso), <b>CNH</b> e <b>documento do veículo (CRLV)</b>. Se quem assina não é o dono do veículo, junte também o documento do dono.",
+      "Protocole " + prazo + " por um destes caminhos: <b>(a)</b> pelo site ou aplicativo do órgão autuador (" + esc(ou(d.orgao, "veja o nome na notificação")) + "), na área de defesa ou recurso de multa; <b>(b)</b> pela Carteira Digital de Trânsito, se o órgão aceitar defesa por lá; <b>(c)</b> pelos Correios, com aviso de recebimento (AR), para o endereço que está na notificação; ou <b>(d)</b> no atendimento presencial do órgão.",
+      "<b>Guarde o comprovante</b> (número do protocolo ou o AR dos Correios). Ele prova que você defendeu no prazo.",
+      "Acompanhe a resposta pela carta ou pela Carteira Digital de Trânsito. Se a defesa prévia for negada, ainda dá para recorrer à JARI quando chegar a notificação da multa. Se a JARI negar, cabe recurso ao CETRAN em até 30 dias (art. 288 do CTB).",
+      "Dúvida em qualquer passo? Chame a gente no WhatsApp.",
+    ];
+  }
+
+  function msgEntrega(d) {
+    var s = "Pronto! Sua defesa está aqui 📄" + (d.protocolo ? " (nº " + d.protocolo + ")" : "") + "\n\n";
+    s += "O que fazer agora:\n1. Assine (à mão ou pelo gov.br)\n2. Junte cópia da notificação, CNH e CRLV\n3. Protocole " + (d.prazo ? "até " + br(d.prazo) : "dentro do prazo da notificação") + " (site do órgão, Correios com AR ou presencial)\n4. Guarde o comprovante\n\nO passo a passo completo está na última página do PDF.\n\n";
+    s += "Se a defesa for negada, dá para recorrer de novo (JARI e depois 2ª instância). Quer que a gente acompanhe até o fim e prepare os próximos recursos? É R$" + (C.precoAcompanhamento || "97") + (C.checkoutAcompanhamento ? ": " + C.checkoutAcompanhamento : ".") + "\n\n";
+    s += "Por segurança, vamos apagar sua foto e o PDF das nossas conversas em até 7 dias. Salve o arquivo no seu celular. 🙏";
+    return s;
+  }
+
+  function atualizar() {
+    var d = dados();
+    document.getElementById("msgAnalise").textContent = msgAnalise(d);
+    document.getElementById("documento").innerHTML = documento(d);
+    document.getElementById("msgEntrega").textContent = msgEntrega(d);
+    var nome = (d.nome || "cliente").split(" ")[0];
+    document.title = "Defesa " + up(d.placa || "") + " " + nome;
+  }
+  f.addEventListener("input", atualizar);
+  f.addEventListener("change", atualizar);
+
+  document.getElementById("abas").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#abas button").forEach(function (x) { x.classList.toggle("ativa", x === b); });
+    document.querySelectorAll("[data-painel]").forEach(function (p) { p.hidden = p.getAttribute("data-painel") !== b.getAttribute("data-aba"); });
+  });
+
+  document.querySelectorAll("[data-copiar]").forEach(function (b) {
+    b.onclick = function () {
+      var t = document.getElementById(b.getAttribute("data-copiar")).textContent;
+      var ok = function () { var o = b.textContent; b.textContent = "Copiado ✓"; setTimeout(function () { b.textContent = o; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(ok, function () { prompt("Copie:", t); });
+      else prompt("Copie:", t);
+    };
+  });
+
+  document.getElementById("limpar").onclick = function () {
+    if (confirm("Apagar todos os dados deste cliente do painel?")) { f.reset(); atualizar(); window.scrollTo(0, 0); }
+  };
+
+  atualizar();
+})();
+</script>
+</body>
+</html>
