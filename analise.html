@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Análise da sua multa — Defesa Pronta</title>
+<meta name="description" content="Mande a foto da notificação e veja na hora se sua multa tem pontos de defesa.">
+<meta name="theme-color" content="#0b2545">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .etapa[hidden] { display: none; }
+  .campo { display: block; font-size: 14px; color: var(--suave); margin: 0 0 12px; }
+  .campo input, .campo select { display: block; width: 100%; margin-top: 4px; padding: 12px; font: inherit; font-size: 16px; color: var(--texto); border: 1px solid var(--borda); border-radius: 10px; background: #fff; }
+  .lido { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--borda); font-size: 15px; }
+  .lido:last-child { border-bottom: 0; }
+  .lido span:first-child { color: var(--suave); flex: none; }
+  .lido b { text-align: right; word-break: break-word; }
+  .lido input { width: 60%; padding: 6px 8px; font: inherit; border: 1px solid var(--borda); border-radius: 6px; }
+  .pergunta-c { margin: 16px 0 8px; font-weight: 700; }
+  .opcoes { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opcoes button { flex: 1; min-width: 90px; padding: 12px; border-radius: 10px; border: 2px solid var(--borda); background: #fff; font: inherit; cursor: pointer; }
+  .opcoes button.sel { border-color: var(--azul); background: var(--azul); color: #fff; }
+  .veredito { border-radius: 14px; padding: 16px; color: #fff; margin: 14px 0; }
+  .veredito.forte { background: var(--verde); }
+  .veredito.media { background: #c77d00; }
+  .veredito.nenhum, .veredito.vencido { background: #5b6573; }
+  .veredito h2 { margin: 0 0 6px; font-size: 22px; }
+  .spinner { width: 46px; height: 46px; border: 5px solid var(--borda); border-top-color: var(--amarelo); border-radius: 50%; animation: g 1s linear infinite; margin: 30px auto 14px; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  .fotos { display: flex; gap: 10px; margin: 10px 0; }
+  .fotos img { width: 90px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid var(--borda); }
+  .erro { color: var(--vermelho); font-weight: 600; margin: 8px 0; }
+  #documento { background: #fff; color: #000; border: 1px solid var(--borda); border-radius: 4px; padding: 22px 18px; font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.6; }
+  #documento h1 { font-size: 14px; text-align: center; margin: 0 0 18px; }
+  #documento h2 { font-size: 14px; margin: 18px 0 6px; }
+  #documento p { text-align: justify; margin: 0 0 9px; }
+  #documento .assin { margin-top: 40px; text-align: center; }
+  #documento .quebra { page-break-before: always; break-before: page; }
+  @media print {
+    body { background: #fff; }
+    header.topo, .nao-imprimir, footer { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    #documento { border: 0; padding: 0; font-size: 12pt; }
+    @page { margin: 2.2cm; }
+  }
+</style>
+</head>
+<body>
+<header class="topo"><div class="wrap"><a class="logo" href="./">Defesa<span>Pronta</span></a></div></header>
+
+<div class="wrap">
+
+<!-- 1. Fotos -->
+<section class="etapa bloco" id="e-foto">
+  <h2>Mande a foto da sua multa</h2>
+  <p class="ajuda">Tire a foto da carta inteira, reta e com boa luz. Se tiver verso com informações, mande também (até 3 fotos).</p>
+  <label class="btn btn-amarelo">📷 Tirar foto ou escolher
+    <input type="file" id="fotoIn" accept="image/*" multiple hidden>
+  </label>
+  <div class="fotos" id="miniaturas"></div>
+  <button class="btn btn-verde" id="btnAnalisar" hidden>Analisar minha multa →</button>
+  <div class="erro" id="erroFoto"></div>
+  <p class="mini">Grátis. A foto é usada só para ler a carta e não fica guardada. <a href="privacidade.html">Privacidade</a></p>
+</section>
+
+<!-- 2. Lendo -->
+<section class="etapa bloco" id="e-lendo" hidden>
+  <div class="spinner"></div>
+  <p style="text-align:center"><b>Lendo sua notificação…</b><br><span class="ajuda">Isso leva uns 10 segundos.</span></p>
+</section>
+
+<!-- 3. Confira -->
+<section class="etapa bloco" id="e-confira" hidden>
+  <h2>Confira o que lemos</h2>
+  <p class="ajuda">Se algo estiver errado, toque em <b>corrigir</b>.</p>
+  <div class="cartao" id="lidos"></div>
+  <button class="voltar" id="btnCorrigir">✏️ corrigir</button>
+
+  <div class="pergunta-c">Você levou outra multa nos últimos 12 meses?</div>
+  <div class="opcoes" data-resp="outraMulta12m">
+    <button data-v="nao">Não</button><button data-v="sim">Sim</button><button data-v="naosei">Não sei</button>
+  </div>
+  <p class="mini" style="text-align:left">Dá para conferir no app Carteira Digital de Trânsito → Infrações.</p>
+
+  <div id="perguntaCondutor">
+    <div class="pergunta-c">Quem estava dirigindo era você?</div>
+    <div class="opcoes" data-resp="outroCondutor">
+      <button data-v="nao">Sim, era eu</button><button data-v="sim">Outra pessoa</button>
+    </div>
+  </div>
+  <div class="erro" id="erroConfira"></div>
+  <button class="btn btn-amarelo" id="btnResultado" style="margin-top:18px">Ver minha análise →</button>
+</section>
+
+<!-- 4. Resultado -->
+<section class="etapa bloco" id="e-resultado" hidden>
+  <div id="resultado"></div>
+</section>
+
+<!-- 5. Dados -->
+<section class="etapa bloco" id="e-dados" hidden>
+  <h2>Seus dados para a defesa</h2>
+  <p class="ajuda">Eles vão no documento. A carta não traz esses dados, por isso precisamos deles.</p>
+  <form id="fDados" autocomplete="on">
+    <label class="campo">Nome completo<input name="nome" autocomplete="name" required></label>
+    <label class="campo">CPF<input name="cpf" inputmode="numeric" required></label>
+    <label class="campo">Nº da CNH (registro)<input name="cnh" inputmode="numeric"></label>
+    <label class="campo">Endereço completo (rua, número, bairro, cidade, UF, CEP)<input name="endereco" autocomplete="street-address" required></label>
+    <label class="campo">Cidade (para a data da defesa)<input name="cidade" autocomplete="address-level2"></label>
+    <label class="campo">Você é
+      <select name="qualidade">
+        <option value="proprietário(a) e condutor(a)">Dono e motorista do veículo</option>
+        <option value="proprietário(a)">Só o dono do veículo</option>
+        <option value="condutor(a)">Só o motorista</option>
+      </select>
+    </label>
+    <label class="campo">E-mail (use o MESMO no pagamento)<input name="email" type="email" autocomplete="email" required></label>
+    <label class="campo">WhatsApp<input name="whatsapp" inputmode="tel" autocomplete="tel"></label>
+    <div class="erro" id="erroDados"></div>
+    <button class="btn btn-verde" type="submit">Ir para o pagamento — R$ <span data-preco>37,90</span></button>
+    <p class="mini">Pix ou cartão, pela Cakto. Assim que o pagamento cair, sua defesa aparece aqui.</p>
+  </form>
+</section>
+
+<!-- 6. Aguardando -->
+<section class="etapa bloco" id="e-aguardando" hidden>
+  <div class="spinner"></div>
+  <p style="text-align:center"><b>Aguardando a confirmação do pagamento…</b><br><span class="ajuda">No Pix, costuma cair em menos de 1 minuto. Pode deixar esta tela aberta.</span></p>
+  <a class="btn btn-claro" id="btnAbrirPagamento" target="_blank" rel="noopener">Abrir o pagamento de novo</a>
+  <p class="mini">Já pagou e nada aconteceu em 5 minutos? <a href="#" data-whats>Chame no WhatsApp</a>.</p>
+</section>
+
+<!-- 7. Defesa -->
+<section class="etapa bloco" id="e-defesa" hidden>
+  <div class="nao-imprimir">
+    <h2>✅ Sua defesa está pronta</h2>
+    <button class="btn btn-amarelo" id="btnPdf">Baixar em PDF</button>
+    <p class="mini">Na janela que abrir, escolha <b>Salvar como PDF</b>. No celular: Compartilhar → Imprimir → Salvar PDF.</p>
+    <p class="mini">Guarde este link: ele abre sua defesa de novo por 60 dias.</p>
+  </div>
+  <div id="documento"></div>
+  <div class="cartao nao-imprimir" style="margin-top:18px;border:2px solid var(--amarelo)">
+    <b>Se negarem, a gente continua com você</b>
+    <p class="ajuda" style="margin:6px 0 12px">No acompanhamento, preparamos os próximos recursos (JARI e 2ª instância) e avisamos cada prazo.</p>
+    <a class="btn btn-amarelo" id="btnAcomp" target="_blank" rel="noopener">Quero o acompanhamento — R$ <span id="precoA">97</span></a>
+  </div>
+</section>
+
+</div>
+<footer class="nao-imprimir"><div class="wrap">Defesa Pronta não é órgão de trânsito nem escritório de advocacia. Não garantimos cancelamento: quem decide é o órgão de trânsito.<br><a href="privacidade.html">Privacidade e termos</a></div></footer>
+
+<script src="config.js"></script>
+<script src="defesa.js"></script>
+<script src="analise.js"></script>
+</body>
+</html>

@@ -1,6 +1,9 @@
 // ÚNICO arquivo que você precisa mexer.
 // Depois de editar, publique de novo (o site lê daqui).
 window.DP = {
+  // Endereço do servidor da análise automática (Cloudflare). Vazio = análise pelo WhatsApp.
+  api: "",
+
   // Seu WhatsApp, só números, com 55 e DDD. Ex.: "5519999998888"
   whatsapp: "5519994171970",
 

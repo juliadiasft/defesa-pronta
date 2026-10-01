@@ -13,6 +13,7 @@
 
 <section class="bloco"><div class="wrap">
   <h2>✅ Pedido recebido!</h2>
+  <div id="minhaDefesa" hidden><a class="btn btn-verde" id="linkDefesa">Ver minha defesa pronta →</a><p class="mini">Se você fez a análise neste celular, sua defesa abre aqui.</p></div>
   <p>Falta só um passo para a gente montar a sua defesa. Mande no WhatsApp:</p>
   <div class="cartao">
     <ul class="lista">
@@ -39,6 +40,7 @@
 <script src="config.js"></script>
 <script>
   var C = window.DP || {};
+  try { var ped = JSON.parse(localStorage.getItem("dp_pedido") || "null"); if (ped && ped.id) { document.getElementById("minhaDefesa").hidden = false; document.getElementById("linkDefesa").href = "analise.html?id=" + ped.id + "&k=" + ped.chave; } } catch (e) {}
   function whats(t) { return "https://wa.me/" + (C.whatsapp || "") + "?text=" + encodeURIComponent(t); }
   document.getElementById("enviar").href = whats("Olá! Comprei a Defesa Pronta. Seguem meus dados e a foto da notificação 👇\n\nNome:\nCPF:\nEndereço:\nE-mail da compra:");
   document.getElementById("precoA").textContent = C.precoAcompanhamento || "97";

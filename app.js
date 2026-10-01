@@ -168,7 +168,9 @@
     h += "<li>Toque no botão verde (a mensagem já vai pronta)</li>";
     h += "<li>No WhatsApp, toque no 📎 e mande a <b>foto da notificação</b> (frente e verso)</li>";
     h += "</ol>";
-    h += '<a class="btn btn-verde" target="_blank" rel="noopener" href="' + esc(whats(mensagemAnalise(prot))) + '">Enviar minha notificação →</a>';
+    h += C.api
+      ? '<a class="btn btn-verde" href="analise.html">Mandar a foto e ver a análise agora →</a>'
+      : '<a class="btn btn-verde" target="_blank" rel="noopener" href="' + esc(whats(mensagemAnalise(prot))) + '">Enviar minha notificação →</a>';
     h += '<p class="mini">Análise nº ' + prot + " · grátis · sem compromisso</p>";
     h += "</div>";
 
@@ -176,7 +178,7 @@
     h += "<b>Já quer a defesa pronta?</b>";
     h += '<p class="ajuda" style="margin:6px 0 12px">Defesa em PDF para a sua notificação + passo a passo de protocolo.</p>';
     h += '<div class="preco">R$ ' + esc(C.preco || "37,90") + "</div>";
-    h += '<a class="btn btn-amarelo" style="margin-top:12px" target="_blank" rel="noopener" href="' + esc(linkCompra(prot)) + '">Quero a defesa pronta</a>';
+    h += '<a class="btn btn-amarelo" style="margin-top:12px"' + (C.api ? "" : ' target="_blank" rel="noopener"') + ' href="' + esc(linkCompra(prot)) + '">Quero a defesa pronta</a>';
     h += '<p class="mini">Não garantimos cancelamento: quem decide é o órgão de trânsito.</p>';
     h += "</div>";
 
@@ -202,10 +204,12 @@
   }
 
   function linkCompra(prot) {
+    if (C.api) return "analise.html";
     if (C.checkout) return C.checkout;
     return whats("Olá! Quero a defesa pronta de R$" + (C.preco || "37,90") + ".\nAnálise nº " + prot + "\n\n" + resumo() + "\n\nVou mandar a foto da notificação 👇");
   }
 
+  document.querySelectorAll("[data-so-api]").forEach(function (a) { if (!C.api) a.remove(); });
   document.querySelectorAll("[data-comecar]").forEach(function (b) { b.onclick = comecar; });
   document.querySelectorAll("[data-preco]").forEach(function (s) { s.textContent = C.preco || "37,90"; });
   document.querySelectorAll("[data-whats-link]").forEach(function (a) {

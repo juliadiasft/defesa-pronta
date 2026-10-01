@@ -50,6 +50,12 @@
 <div class="nao-imprimir">
   <p class="aviso" style="margin-top:16px">Nada do que você digita aqui sai deste aparelho. Ao terminar um cliente, toque em <b>Limpar cliente</b> (LGPD).</p>
 
+  <fieldset id="pedidosBox">
+    <legend>Pedidos do site</legend>
+    <div id="pedidosLista" class="mini" style="text-align:left">Toque em atualizar.</div>
+    <button type="button" class="btn btn-claro" id="pedidosAtualizar" style="margin:10px 0">Atualizar pedidos</button>
+  </fieldset>
+
   <fieldset id="leitura">
     <legend>Foto da notificação</legend>
     <p class="ajuda" style="margin:0 0 10px">Escolha a foto que o cliente mandou. O celular lê o texto, preenche os campos e marca os pontos de defesa. A foto não sai deste aparelho.</p>
@@ -148,52 +154,16 @@
 </div>
 
 <script src="config.js"></script>
+<script src="defesa.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 <script src="leitura.js?v=4" defer></script>
+<script src="pedidos.js" defer></script>
 <script>
 (function () {
   var C = window.DP || {};
   var f = document.getElementById("f");
 
-  // Cada ponto: texto curto (para a análise) e parágrafo (para a defesa).
-  var ARGS = [
-    { id: "prazo30", t: "Notificação expedida depois de 30 dias", h: "Preencha a data da infração e a de expedição.",
-      curto: function (d) { return "A notificação foi expedida " + dias(d) + " dias depois da infração. A lei dá 30 dias (art. 281 do CTB)."; },
-      titulo: "DA NOTIFICAÇÃO EXPEDIDA FORA DO PRAZO LEGAL",
-      texto: function (d) { return "A infração teria ocorrido em " + br(d.dataInfracao) + ", e a notificação da autuação somente foi expedida em " + br(d.dataExpedicao) + ", ou seja, " + dias(d) + " dias depois. O art. 281, parágrafo único, inciso II, do Código de Trânsito Brasileiro determina que o auto de infração será arquivado e seu registro julgado insubsistente se, no prazo máximo de 30 (trinta) dias, não for expedida a notificação da autuação. Ultrapassado o prazo legal, impõe-se o arquivamento do auto de infração."; } },
-    { id: "naoNotificado", t: "Não recebeu a notificação da autuação", h: "",
-      curto: function () { return "Você não recebeu a notificação da autuação, que é obrigatória antes da multa."; },
-      titulo: "DA AUSÊNCIA DE NOTIFICAÇÃO DA AUTUAÇÃO",
-      texto: function () { return "O(A) requerente não recebeu a notificação da autuação, etapa obrigatória que garante o direito de defesa antes da aplicação da penalidade (arts. 280, inciso VI, 281 e 282 do CTB, e art. 5º, inciso LV, da Constituição Federal). Requer-se que o órgão autuador comprove a expedição e a entrega da notificação no endereço do(a) requerente, sob pena de nulidade do procedimento."; } },
-    { id: "dados", t: "Falta ou erro em dado obrigatório do auto", h: "Descreva o que falta ou está errado.", extra: "Ex.: o auto não traz a identificação do agente autuador",
-      curto: function (d, x) { return "Dado obrigatório com problema: " + x + " (art. 280 do CTB)."; },
-      titulo: "DA IRREGULARIDADE DE REQUISITO OBRIGATÓRIO DO AUTO",
-      texto: function (d, x) { return "O art. 280 do CTB estabelece os elementos que obrigatoriamente devem constar do auto de infração, entre eles a tipificação da infração, o local, a data e a hora do cometimento, os caracteres da placa, a marca e a espécie do veículo, e a identificação do órgão ou entidade e do agente autuador. No presente caso, verifica-se a seguinte irregularidade: " + x + ". A ausência ou o erro de requisito obrigatório torna o auto inconsistente, devendo ser arquivado, nos termos do art. 281, parágrafo único, inciso I, do CTB."; } },
-    { id: "veiculo", t: "Veículo descrito diferente do real", h: "Diga o que diverge.", extra: "Ex.: o auto diz Fiat Palio prata; o veículo é um Onix branco",
-      curto: function (d, x) { return "O veículo do auto não confere com o seu: " + x + "."; },
-      titulo: "DA DIVERGÊNCIA ENTRE O VEÍCULO AUTUADO E O VEÍCULO DO REQUERENTE",
-      texto: function (d, x) { return "Os dados do veículo constantes do auto de infração não correspondem ao veículo de placa " + up(d.placa) + " (" + d.modelo + "), pertencente ao(à) requerente: " + x + ". A divergência indica erro na identificação do veículo, o que torna o auto inconsistente (arts. 280, inciso IV, e 281, parágrafo único, inciso I, do CTB), conforme documento do veículo (CRLV) anexo."; } },
-    { id: "radar", t: "Radar: pedir prova de aferição do Inmetro", h: "",
-      curto: function () { return "A notificação não comprova que o radar estava com a verificação do Inmetro em dia."; },
-      titulo: "DA REGULARIDADE DO EQUIPAMENTO MEDIDOR",
-      texto: function () { return "Nos termos do art. 280, § 2º, do CTB, a infração comprovada por equipamento eletrônico exige que o instrumento seja previamente regulamentado pelo CONTRAN, o que inclui a verificação metrológica periódica pelo Inmetro ou entidade por ele acreditada. A notificação não traz prova de que o equipamento estava com a verificação válida na data da infração. Requer-se a apresentação do certificado de verificação vigente e dos dados de identificação do equipamento; não sendo comprovada a regularidade, o auto deve ser arquivado."; } },
-    { id: "sinalizacao", t: "Sinalização ausente ou ruim no local", h: "Descreva (de preferência com foto do local).", extra: "Ex.: placa de proibido estacionar coberta por árvore",
-      curto: function (d, x) { return "A sinalização do local era insuficiente: " + x + " (art. 90 do CTB)."; },
-      titulo: "DA SINALIZAÇÃO INSUFICIENTE",
-      texto: function (d, x) { return "O art. 90 do CTB dispõe que não serão aplicadas as sanções previstas no Código por inobservância à sinalização quando esta for insuficiente ou incorreta. No local da suposta infração, verifica-se: " + x + ". Sem sinalização suficiente e legível, não se pode exigir do condutor a conduta tida por violada, devendo o auto ser arquivado."; } },
-    { id: "tipificacao", t: "Enquadramento errado da infração", h: "Explique o erro.", extra: "Ex.: autuado por estacionar em local proibido, mas era parada para embarque",
-      curto: function (d, x) { return "O enquadramento da infração parece errado: " + x + "."; },
-      titulo: "DO ENQUADRAMENTO INCORRETO",
-      texto: function (d, x) { return "A conduta descrita não corresponde ao enquadramento atribuído no auto de infração: " + x + ". A tipificação correta é requisito obrigatório do auto (art. 280, inciso I, do CTB), e o erro de enquadramento o torna inconsistente, devendo ser arquivado."; } },
-    { id: "semAbordagem", t: "Autuação sem abordagem, sem motivo descrito (art. 280, §3º)", h: "Quando o auto diz que o veículo não foi parado e não explica por quê.",
-      curto: function () { return "O agente não parou o veículo e não explicou por que a abordagem não foi possível (art. 280, §3º, do CTB)."; },
-      titulo: "DA AUTUAÇÃO SEM ABORDAGEM E SEM JUSTIFICATIVA",
-      texto: function () { return "O auto de infração foi lavrado sem a abordagem do condutor, com fundamento no art. 280, § 3º, do CTB. Esse dispositivo, porém, só admite a autuação sem flagrante quando ela não for possível, e exige que o agente relate o fato à autoridade. No caso, o auto não descreve nenhuma circunstância concreta que impedisse a abordagem, limitando-se a citar o dispositivo. A ausência de abordagem e de justificativa retirou do condutor a possibilidade de constatar e esclarecer, no momento, a suposta irregularidade, o que compromete a comprovação da infração e o direito de defesa (art. 5º, inciso LV, da Constituição Federal). Requer-se, por isso, o arquivamento do auto."; } },
-    { id: "advertencia", t: "Advertência por escrito no lugar da multa (leve/média, sem multa em 12 meses — art. 267)", h: "Pergunte ao cliente se ele teve outra multa nos últimos 12 meses.",
-      curto: function () { return "A infração é leve ou média e, sem outra multa nos últimos 12 meses, a lei manda aplicar advertência por escrito no lugar da multa (art. 267 do CTB)."; },
-      titulo: "DA APLICAÇÃO OBRIGATÓRIA DA ADVERTÊNCIA POR ESCRITO",
-      texto: function () { return "A infração imputada é de natureza leve ou média, e o(a) requerente não cometeu nenhuma outra infração nos últimos 12 (doze) meses. Nessa hipótese, o art. 267 do CTB, com a redação dada pela Lei nº 14.071/2020, determina que deverá ser imposta a penalidade de advertência por escrito, e não a de multa. Trata-se de comando legal, e não de faculdade da autoridade, de modo que, mantida a autuação, a penalidade de multa deve ser convertida em advertência por escrito."; } },
-  ];
+  var ARGS = DPDefesa.ARGS;
 
   var box = document.getElementById("args");
   ARGS.forEach(function (a) {
@@ -241,66 +211,7 @@
     return s;
   }
 
-  function enderecamento(d) {
-    var org = up(ou(d.orgao, "[ÓRGÃO AUTUADOR]"));
-    if (d.fase === "jari") return "ILUSTRÍSSIMO(A) SENHOR(A) PRESIDENTE DA JUNTA ADMINISTRATIVA DE RECURSOS DE INFRAÇÕES (JARI) DO " + org;
-    if (d.fase === "cetran") return "ILUSTRÍSSIMO(A) SENHOR(A) PRESIDENTE DO CONSELHO ESTADUAL DE TRÂNSITO (CETRAN/" + up(ou(d.uf, "UF")) + ")";
-    return "ILUSTRÍSSIMO(A) SENHOR(A) DIRIGENTE DA AUTORIDADE DE TRÂNSITO DO " + org;
-  }
-  function nomePeca(d) {
-    if (d.fase === "jari") return "RECURSO";
-    if (d.fase === "cetran") return "RECURSO EM 2ª INSTÂNCIA";
-    return "DEFESA PRÉVIA";
-  }
-
-  function documento(d) {
-    var m = marcados(d);
-    var fund = m.filter(function (p) { return p.a.titulo; });
-    var adv = m.some(function (p) { return p.a.id === "advertencia"; });
-    var h = "<h1>" + esc(enderecamento(d)) + "</h1>";
-    h += "<p><b>Auto de infração nº " + esc(ou(d.auto, "________")) + "</b><br>Placa: " + esc(up(ou(d.placa, "________"))) + "</p>";
-    h += "<p><b>" + esc(ou(d.nome, "[NOME]").toUpperCase()) + "</b>, inscrito(a) no CPF sob o nº " + esc(ou(d.cpf, "________")) + ", habilitado(a) sob o registro nº " + esc(ou(d.cnh, "________")) + ", residente em " + esc(ou(d.endereco, "________")) + ", na qualidade de " + esc(d.qualidade) + " do veículo " + esc(ou(d.modelo, "________")) + ", placa " + esc(up(ou(d.placa, "________"))) + ", RENAVAM " + esc(ou(d.renavam, "________")) + ", vem, respeitosamente, apresentar <b>" + nomePeca(d) + "</b> referente ao auto de infração acima, pelos fatos e fundamentos a seguir.</p>";
-
-    h += "<h2>I – DOS FATOS</h2>";
-    h += "<p>O(A) requerente foi autuado(a) pela suposta infração “" + esc(ou(d.infracao, "________")) + "”, que teria ocorrido em " + br(d.dataInfracao) + (d.hora ? ", às " + esc(d.hora) : "") + ", no local " + esc(ou(d.local, "________")) + ". Como se demonstrará, o auto de infração não pode subsistir.</p>";
-    if (d.fatos) h += "<p>" + esc(d.fatos) + "</p>";
-
-    h += "<h2>II – DO DIREITO</h2>";
-    if (!fund.length) h += "<p>[Marque pelo menos um ponto de defesa no painel.]</p>";
-    fund.forEach(function (p, i) {
-      h += "<p><b>" + (i + 1) + ". " + p.a.titulo + "</b></p><p>" + esc(p.a.texto(d, p.x)) + "</p>";
-    });
-
-    h += "<h2>III – DO PEDIDO</h2>";
-    h += "<p>Diante do exposto, requer:</p>";
-    h += "<p>a) o acolhimento da presente " + (d.fase === "previa" ? "defesa" : "peça") + ", com o arquivamento do auto de infração nº " + esc(ou(d.auto, "________")) + " e o cancelamento de todos os seus efeitos, inclusive da pontuação no prontuário do(a) requerente;</p>";
-    var letra = "b";
-    if (adv) { h += "<p>" + letra + ") subsidiariamente, sendo a infração de natureza leve ou média e não tendo o(a) requerente cometido a mesma infração nos últimos 12 meses, a aplicação de advertência por escrito em lugar da multa, nos termos do art. 267 do CTB;</p>"; letra = "c"; }
-    h += "<p>" + letra + ") a juntada dos documentos anexos: cópia da notificação, da CNH e do documento do veículo (CRLV).</p>";
-    h += "<p>Nestes termos, pede deferimento.</p>";
-    h += "<p>" + esc(cidade(d)) + ", " + hoje() + ".</p>";
-    h += '<div class="assin">_______________________________________<br>' + esc(ou(d.nome, "[NOME]")) + "<br>CPF " + esc(ou(d.cpf, "")) + "</div>";
-
-    h += '<div class="quebra"></div>';
-    h += "<h1>PASSO A PASSO PARA PROTOCOLAR</h1>";
-    h += passo(d).map(function (t, i) { return "<p><b>" + (i + 1) + ".</b> " + t + "</p>"; }).join("");
-    return h;
-  }
-
-  function cidade(d) { return "_______________"; }
-  function hoje() { var n = new Date(); return n.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }); }
-
-  function passo(d) {
-    var prazo = d.prazo ? "<b>até " + br(d.prazo) + "</b>" : "<b>dentro do prazo que está na notificação</b>";
-    return [
-      "Preencha a cidade e a data no fim da defesa e <b>assine</b>. Pode ser à mão (imprimindo) ou com a assinatura digital gratuita do gov.br, que muitos órgãos aceitam.",
-      "Separe as cópias: <b>notificação</b> (frente e verso), <b>CNH</b> e <b>documento do veículo (CRLV)</b>. Se quem assina não é o dono do veículo, junte também o documento do dono.",
-      "Protocole " + prazo + " por um destes caminhos: <b>(a)</b> pelo site ou aplicativo do órgão autuador (" + esc(ou(d.orgao, "veja o nome na notificação")) + "), na área de defesa ou recurso de multa; <b>(b)</b> pela Carteira Digital de Trânsito, se o órgão aceitar defesa por lá; <b>(c)</b> pelos Correios, com aviso de recebimento (AR), para o endereço que está na notificação; ou <b>(d)</b> no atendimento presencial do órgão.",
-      "<b>Guarde o comprovante</b> (número do protocolo ou o AR dos Correios). Ele prova que você defendeu no prazo.",
-      "Acompanhe a resposta pela carta ou pela Carteira Digital de Trânsito. Se a defesa prévia for negada, ainda dá para recorrer à JARI quando chegar a notificação da multa. Se a JARI negar, cabe recurso ao CETRAN em até 30 dias (art. 288 do CTB).",
-      "Dúvida em qualquer passo? Chame a gente no WhatsApp.",
-    ];
-  }
+  function documento(d) { return DPDefesa.documento(d, marcados(d)); }
 
   function msgEntrega(d) {
     var s = "Pronto! Sua defesa está aqui 📄" + (d.protocolo ? " (nº " + d.protocolo + ")" : "") + "\n\n";
